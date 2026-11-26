@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package api;
+import "google/protobuf/timestamp.proto";
+
+// Interface exported by the server
+service GRPCAPI {
+    // Analyze, get queue, get email severity score for an email
+    rpc analyzeEmail(analyzeMsg) returns (analyzeReply) {}
+    rpc listEmails(listMsg) returns (listReply) {}
+    rpc getSeverity(severityMsg) returns (severityReply) {}
+}
+
+// Needs all the contents of an email
+message email {
+    string message_id = 1;  // Output only. Assigned by server.
+    string sender = 2;
+    repeated string to = 3;
+    repeated string cc = 4;
+    repeated string bcc = 5;
+    string subject = 6;
+
+    // Body content
+    string plain_text_body = 7;  // For easier parsing
+    string html_body = 8;        // For what it might look like
+
+    // Metadata and files
+    google.protobuf.Timestamp sent_at = 9;
+    repeated string attachment_urls = 10;
+    map<string, string> custom_headers = 11;
+
+    // Status of email (output only)
+    emailStatus status = 12;
+    string status_reason = 13;
+
+    // Pipeline results (output only)
+    string pipeline_state = 14;   // RECEIVED / ANALYZING / SCORED / RESPONDED / FAILED
+    string severity = 15;         // low / medium / high (empty until scored)
+    int32 score = 16;             // 0-100
+    repeated string findings = 17;
+    string action_taken = 18;
+}
+
+enum emailStatus {
+    EMAIL_STATUS_UNSPECIFIED = 0;  // not analyzed yet
+    EMAIL_STATUS_GOOD = 1;         // severity low
+    EMAIL_STATUS_BAD = 2;          // severity medium/high
+}
+
+message analyzeMsg {
+    email email_to_analyze = 1;
+}
+
+message listMsg {
+    int32 list_size = 1;
+    string list_token = 2; // token of the last item sent
+}
+
+message severityMsg {
+    string message_id = 1;
+}
+
+message analyzeReply {
+    email analyzed_email = 1;
+}
+
+message listReply {
+    repeated email emails = 1;
+    string next_list_token = 2;
+}
+
+message severityReply {
+    string severity = 1;
+}
