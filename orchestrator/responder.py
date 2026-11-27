@@ -4,7 +4,7 @@ import os
 from email.utils import parseaddr
 import requests
 
-import postgresql.db as db
+import orchestrator.postgresql.db as db
 
 log = logging.getLogger("responder")
 

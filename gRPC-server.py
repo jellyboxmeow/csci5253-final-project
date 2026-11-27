@@ -45,7 +45,7 @@ class gRPCServicer(gRPC_api_pb2_grpc.GRPCAPIServicer):
 
     def analyzeEmail(self, request, context):
         email_to_verify = request.email_to_analyze
-        if not email_to_verify or not ():
+        if not email_to_verify or not (email_to_verify.plain_text_body or email_to_verify.html_body):
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Email needs a sender and a body")
         for field in OUTPUT_ONLY:
             email_to_verify.ClearField(field)
@@ -56,10 +56,7 @@ class gRPCServicer(gRPC_api_pb2_grpc.GRPCAPIServicer):
         db.insert_email(email_id, email_entry)
         workers.submit(orchestrator.process, email_id, email_entry)
         log.info("[%s] received from %s", email_id, email_to_verify.sender)
-        
-        response = gRPC_api_pb2.analyzeReply()
-        response.analyzed_email = row_to_email(db.get_email(email_id))
-        return response
+        return gRPC_api_pb2.analyzeReply(analyzed_email=row_to_email(db.get_email(email_id)))
     
     def listEmails(self, request, context):
         size = min(request.list_size or 20, 100)

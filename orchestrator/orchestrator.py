@@ -7,9 +7,9 @@ import sys
 import tarfile
 import docker
 
-import postgresql.db as db
-import responder
-from sandbox.analyze import analyze
+import orchestrator.postgresql.db as db
+import orchestrator.responder as responder
+from orchestrator.sandbox.analyze import analyze
 log = logging.getLogger("orchestrator")
 
 SANDBOX_MODE = os.environ.get("SANDBOX_MODE", "docker")   # "docker" (real) or "local" (dev/tests only, NOT isolated)
